@@ -1,2 +1,3 @@
 -Q src/ Pseudorandom
 src/SplitMix.v
+src/SplitMix2.v

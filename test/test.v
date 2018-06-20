@@ -3,14 +3,34 @@ Import ListNotations.
 Require Import ZArith.
 
 Require Import Pseudorandom.SplitMix.
+Require Pseudorandom.SplitMix2.
 
-Fixpoint split_many (n : nat) g :=
-  match n with
-  | O => g
-  | S n' => let (g, _) := split g in split_many n' g
-  end.
+Fixpoint split_many (n : N) g :=
+  N.iter n
+         (fun g => fst (split g))
+         g.
 
-Time Compute (next_int64 (split_many 3000%nat (of_seed 33))).
+Module SM1.
+Import SplitMix.
+
+Definition iter (n : N) :=
+  next_int64 (split_many n (of_seed 33)).
+
+End SM1.
+
+Module SM2.
+Import SplitMix2.
+
+Definition iter (n : N) :=
+  binary_to_N (to_binary
+    (N.iter n
+            (fun g => snd (split g))
+            (of_seed 33))).
+
+End SM2.
+
+Time Compute SM1.iter 3000.
+Time Compute SM2.iter 3000.
 
 Definition test_run :=
   let g0 := of_seed 33 in
@@ -26,7 +46,7 @@ Definition test_run :=
   let (x6, g3) := next_int64 g3 in
   let (x7, g3) := next_int64 g3 in
   let (x8, g3) := next_int64 g3 in
-  let (x9, _) := next_int64 (split_many 300%nat g3) in
+  let (x9, _) := next_int64 (split_many 300 g3) in
   map two's [x0;x1;x2;x3;x4;x5;x6;x7;x8;x9].
 
 Example ex :
